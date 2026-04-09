@@ -63,3 +63,8 @@ body {
   color: var(--text);
   font-family: var(--font-primary);
 }
+
+.active{
+  background: var(--surface-variant);
+  color: var(--accent);
+}
