@@ -4,5 +4,5 @@ export default function Home() {
       <h1>Starter Project</h1>
       <p>⚠️ Update project name in package.json</p>
     </main>
-  )
+  );
 }
