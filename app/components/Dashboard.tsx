@@ -376,10 +376,9 @@ export default function Dashboard() {
           <p className="text-sm border-t border-divider text-text-secondary font-semibold mt-4 pt-4">
             Monday, 20th October 2025
           </p>
-          <div className="flex border border-divider bg-surface px-6">
-            {" "}
-            <aside className="w-64 bg-surface-variant border-divider flex items-center justify-center">
-              <p className="text-accent text-sm text-center font-bold">
+              <div className="flex border-t border-b border-divider bg-surface">
+              <aside className="w-64 bg-surface-variant border-r border-divider flex items-center justify-center">
+                <p className="text-accent text-sm text-center font-bold">
                 DIGITAL MEDIA FOR BUSINESS
                 <br />
                 XX00001 25/26

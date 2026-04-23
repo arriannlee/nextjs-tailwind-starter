@@ -40,12 +40,12 @@
 /* high contrast dark */
 [data-theme="high-contrast-dark"] {
   --background: #000000;
-  --accent: #a395ff;
+  --accent: #4338ca;
   --surface: #141414;
   --surface-variant: #1f1f1f;
   --text: #ffffff;
   --text-secondary: #dadada;
-  --divider: #555555;
+  --divider: #000;
 }
 
 @theme inline {

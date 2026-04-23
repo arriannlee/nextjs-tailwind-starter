@@ -13,16 +13,21 @@ export default function AssistModal({ setIsModalOpen }: AssistModalProps) {
   const name = "";
   const [step, setStep] = useState<AssistStep>("welcome");
   const [darkMode, setDarkMode] = useState(false);
+  const [highContrast, setHighContrast] = useState(false);
 
   useEffect(() => {
     const root = document.documentElement;
 
-    if (darkMode) {
+    if (darkMode && highContrast) {
+      root.setAttribute("data-theme", "high-contrast-dark");
+    } else if (darkMode && !highContrast) {
       root.setAttribute("data-theme", "dark");
+    } else if (!darkMode && highContrast) {
+      root.setAttribute("data-theme", "high-contrast-light");
     } else {
-      root.removeAttribute("data-theme"); // falls back to :root (light)
+      root.removeAttribute("data-theme"); // default light
     }
-  }, [darkMode]);
+  }, [darkMode, highContrast]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -148,7 +153,12 @@ export default function AssistModal({ setIsModalOpen }: AssistModalProps) {
 
                 <div className="flex items-center justify-between rounded-xl bg-surface-variant px-5 py-4">
                   <span className="text-sm text-text">High contrast</span>
-                  <input type="checkbox" className="toggle-switch" />
+                  <input
+                    type="checkbox"
+                    className="toggle-switch"
+                    checked={highContrast}
+                    onChange={(e) => setHighContrast(e.target.checked)}
+                  />{" "}
                 </div>
 
                 {/* Dyslexic font */}
