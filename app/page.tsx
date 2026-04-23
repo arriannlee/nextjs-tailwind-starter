@@ -1,8 +1,20 @@
+"use client";
+
+import { useState } from "react";
+import Dashboard from "./components/Dashboard";
+import AssistModal from "./components/AssistModal";
+
 export default function Home() {
+  const [isModalOpen, setIsModalOpen] = useState(true); // true for testing
+
   return (
-    <main>
-      <h1>Starter Project</h1>
-      <p>⚠️ Update project name in package.json</p>
-    </main>
+    <>
+      <Dashboard />
+
+{isModalOpen && (
+
+  <AssistModal setIsModalOpen={setIsModalOpen} />
+
+)}    </>
   );
 }
