@@ -1,5 +1,14 @@
-export default function AssistModal({ setIsModalOpen }) {
+"use client";
+
+import { useState } from "react";
+
+type AssistModalProps = {
+  setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+export default function AssistModal({ setIsModalOpen }: AssistModalProps) {
   const name = "";
+  const [showRecommendations, setShowRecommendations] = useState(false);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -16,7 +25,7 @@ export default function AssistModal({ setIsModalOpen }) {
           <img
             src="/images/welcome.svg"
             alt="Welcome image"
-            className="w-64 h-auto mb-4"
+            className="mb-4 h-auto w-64"
           />
 
           <p className="mb-4 text-base font-medium text-text">
@@ -25,8 +34,10 @@ export default function AssistModal({ setIsModalOpen }) {
 
           <p className="mb-6 max-w-3xl text-sm leading-7 text-text-secondary">
             Before you get started, let’s make things a bit easier to read and
-            navigate so everything works better for you.< br/> What challenges do you
-            experience when reading or navigating online systems?
+            navigate so everything works better for you.
+            <br />
+            What challenges do you experience when reading or navigating online
+            systems?
           </p>
 
           <input
@@ -35,9 +46,32 @@ export default function AssistModal({ setIsModalOpen }) {
             className="mb-5 w-full max-w-2xl rounded-md border border-divider bg-surface-variant px-4 py-3 text-sm text-text placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent"
           />
 
-          <button className="mb-5 w-full max-w-2xl rounded-md bg-accent px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90">
-            Show Recommendations
+          <button
+            onClick={() => setShowRecommendations(true)}
+            className="mb-5 w-full max-w-2xl rounded-md bg-accent px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+          >
+            {showRecommendations
+              ? "Update Recommendations"
+              : "Show Recommendations"}
           </button>
+
+          {showRecommendations && (
+            <>
+              <p className="mb-5 text-sm text-text-secondary">
+                Based on your input, here’s what might help:
+              </p>
+
+              <div className="mb-5 flex items-center justify-center gap-4">
+                <button className="rounded-md border border-accent bg-background px-8 py-3 text-sm font-semibold text-accent transition hover:opacity-90">
+                  Preview
+                </button>
+
+                <button className="rounded-md bg-accent px-8 py-3 text-sm font-semibold text-white transition hover:opacity-90">
+                  Apply Changes
+                </button>
+              </div>
+            </>
+          )}
 
           <p className="text-sm text-text-secondary opacity-80">
             Prefer to adjust things yourself? Click here!
