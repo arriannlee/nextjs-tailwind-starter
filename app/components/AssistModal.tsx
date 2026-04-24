@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type AssistModalProps = {
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -11,18 +10,33 @@ type AssistModalProps = {
 
 type AssistStep = "welcome" | "recommendations" | "manual";
 
+type AccessibilitySettings = {
+  darkMode: boolean;
+  highContrast: boolean;
+  dyslexicFont: boolean;
+  fontStep: number;
+  language: string;
+};
+
 export default function AssistModal({
   setIsModalOpen,
   language,
   setLanguage,
 }: AssistModalProps) {
   const name = "";
+
   const [step, setStep] = useState<AssistStep>("welcome");
   const [darkMode, setDarkMode] = useState(false);
   const [highContrast, setHighContrast] = useState(false);
   const [dyslexicFont, setDyslexicFont] = useState(false);
   const [fontStep, setFontStep] = useState(0);
   const [settingsSaved, setSettingsSaved] = useState(false);
+
+  const [userNeed, setUserNeed] = useState("");
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiSummary, setAiSummary] = useState("");
+  const [pendingSettings, setPendingSettings] =
+    useState<AccessibilitySettings | null>(null);
 
   const modalText = {
     en: {
@@ -49,11 +63,13 @@ export default function AssistModal({
       darkMode: "Dark mode",
       language: "Language selection",
       saved: "Preferences saved.",
+      previewFallback:
+        "These settings may improve your experience. You can preview them before applying changes.",
       english: "English UK",
       spanish: "Spanish",
     },
     es: {
-      welcome: `Hola ${name || "there"}, bienvenido a B&FC 👋`,
+      welcome: "Hola, bienvenido a B&FC 👋",
       intro:
         "Antes de comenzar, ajustemos la pantalla para que sea más fácil de leer y navegar.",
       question:
@@ -76,6 +92,8 @@ export default function AssistModal({
       darkMode: "Modo oscuro",
       language: "Selección de idioma",
       saved: "Preferencias guardadas.",
+      previewFallback:
+        "Estos ajustes pueden mejorar tu experiencia. Puedes verlos antes de aplicar los cambios.",
       english: "Inglés Reino Unido",
       spanish: "Español",
     },
@@ -88,12 +106,15 @@ export default function AssistModal({
 
     if (!savedSettings) return;
 
-    const parsedSettings = JSON.parse(savedSettings);
+    const parsedSettings = JSON.parse(
+      savedSettings,
+    ) as Partial<AccessibilitySettings>;
 
     setDarkMode(parsedSettings.darkMode ?? false);
     setHighContrast(parsedSettings.highContrast ?? false);
     setDyslexicFont(parsedSettings.dyslexicFont ?? false);
     setFontStep(parsedSettings.fontStep ?? 0);
+    setLanguage(parsedSettings.language ?? language);
   }, []);
 
   useEffect(() => {
@@ -101,12 +122,12 @@ export default function AssistModal({
 
     if (darkMode && highContrast) {
       root.setAttribute("data-theme", "high-contrast-dark");
-    } else if (darkMode && !highContrast) {
+    } else if (darkMode) {
       root.setAttribute("data-theme", "dark");
-    } else if (!darkMode && highContrast) {
+    } else if (highContrast) {
       root.setAttribute("data-theme", "high-contrast-light");
     } else {
-      root.removeAttribute("data-theme"); // default light
+      root.removeAttribute("data-theme");
     }
   }, [darkMode, highContrast]);
 
@@ -138,11 +159,9 @@ export default function AssistModal({
       }
     };
 
-    const scale = getFontScale(fontStep);
-
     document.documentElement.style.setProperty(
       "--font-scale",
-      scale.toString(),
+      getFontScale(fontStep).toString(),
     );
   }, [fontStep]);
 
@@ -156,26 +175,84 @@ export default function AssistModal({
     return () => clearTimeout(timer);
   }, [settingsSaved]);
 
+  const handleShowRecommendations = async () => {
+    if (!userNeed.trim()) return;
+
+    setIsAiLoading(true);
+
+    try {
+      const response = await fetch("/.netlify/functions/getRecommendations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ input: userNeed }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("AI function failed:", errorText);
+        return;
+      }
+
+      const result = await response.json();
+
+      setAiSummary(result.summary ?? "");
+      setPendingSettings({
+        darkMode: result.darkMode ?? false,
+        highContrast: result.highContrast ?? false,
+        dyslexicFont: result.dyslexicFont ?? false,
+        fontStep: result.fontStep ?? 0,
+        language: result.language ?? language,
+      });
+
+      setStep("recommendations");
+    } catch (error) {
+      console.error("AI recommendation failed", error);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  const handlePreviewRecommendations = () => {
+    if (!pendingSettings) return;
+
+    setDarkMode(pendingSettings.darkMode);
+    setHighContrast(pendingSettings.highContrast);
+    setDyslexicFont(pendingSettings.dyslexicFont);
+    setFontStep(pendingSettings.fontStep);
+    setLanguage(pendingSettings.language);
+  };
+
   const handleApplyChanges = () => {
-    const settings = {
-      darkMode,
-      highContrast,
-      dyslexicFont,
-      fontStep,
-    };
+    const settings: AccessibilitySettings = pendingSettings
+      ? pendingSettings
+      : {
+          darkMode,
+          highContrast,
+          dyslexicFont,
+          fontStep,
+          language,
+        };
+
+    setDarkMode(settings.darkMode);
+    setHighContrast(settings.highContrast);
+    setDyslexicFont(settings.dyslexicFont);
+    setFontStep(settings.fontStep);
+    setLanguage(settings.language);
 
     localStorage.setItem(
       "savnac-accessibility-settings",
       JSON.stringify(settings),
     );
 
+    setPendingSettings(null);
     setSettingsSaved(true);
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl bg-background px-10 py-8 shadow-xl">
-        {" "}
         <button
           onClick={() => setIsModalOpen(false)}
           className="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-md text-text-secondary transition hover:bg-black/5 hover:opacity-80"
@@ -183,6 +260,7 @@ export default function AssistModal({
         >
           X
         </button>
+
         <div className="flex flex-col items-center text-center">
           <img
             src="/images/welcome.svg"
@@ -202,42 +280,61 @@ export default function AssistModal({
 
               <input
                 type="text"
+                value={userNeed}
+                onChange={(e) => setUserNeed(e.target.value)}
                 placeholder={t.placeholder}
                 className="mb-5 w-full max-w-2xl rounded-md border border-divider bg-surface-variant px-4 py-3 assist-option-text text-text placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent"
               />
 
               <button
-                onClick={() => setStep("recommendations")}
+                onClick={handleShowRecommendations}
                 className="mb-5 w-full max-w-2xl rounded-md bg-accent px-6 py-3 assist-option-text font-semibold text-white transition hover:opacity-90"
               >
-                {step === "recommendations"
-                  ? t.updateRecommendations
-                  : t.showRecommendations}
+                {isAiLoading
+                  ? "Checking..."
+                  : step === "recommendations"
+                    ? t.updateRecommendations
+                    : t.showRecommendations}
               </button>
             </>
           )}
 
           {step === "recommendations" && (
             <>
-              <p className="mb-5 assist-option-text text-text-secondary">
-                Based on your input, here’s what might help:
-              </p>
+              <div className="mb-5 max-w-2xl rounded-md bg-surface-variant px-4 py-3 text-left">
+                <p className="mb-2 assist-option-text font-semibold text-text">
+                  {t.basedOnInput}
+                </p>
+
+                <p className="assist-option-text text-text-secondary">
+                  {aiSummary || t.previewFallback}
+                </p>
+              </div>
 
               <div className="mb-5 flex items-center justify-center gap-4">
                 <button
-                  onClick={() => setStep("manual")}
+                  onClick={handlePreviewRecommendations}
                   className="rounded-md border border-accent bg-background px-8 py-3 assist-option-text font-semibold text-accent transition hover:opacity-90"
                 >
-                  Preview
+                  {t.preview}
                 </button>
 
-                <button className="rounded-md bg-accent px-8 py-3 assist-option-text font-semibold text-white transition hover:opacity-90">
-                  Apply Changes
+                <button
+                  onClick={handleApplyChanges}
+                  className="rounded-md bg-accent px-8 py-3 assist-option-text font-semibold text-white transition hover:opacity-90"
+                >
+                  {t.apply}
                 </button>
               </div>
 
+              {settingsSaved && (
+                <p className="mt-1 mb-2 text-sm text-text-secondary">
+                  {t.saved}
+                </p>
+              )}
+
               <p className="assist-option-text text-text-secondary opacity-80">
-                Prefer to adjust things yourself?{" "}
+                {t.preferManual}{" "}
                 <button
                   onClick={() => setStep("manual")}
                   className="text-text underline underline-offset-2"
@@ -267,8 +364,6 @@ export default function AssistModal({
               </p>
 
               <div className="mb-4 flex w-full max-w-3xl flex-col gap-3 text-left">
-                {/* Text size */}
-
                 <div className="flex items-center justify-between rounded-xl bg-surface-variant px-5 py-4">
                   <span className="assist-option-text text-text">
                     {t.textSize}
@@ -291,49 +386,44 @@ export default function AssistModal({
                   </div>
                 </div>
 
-                {/* High contrast */}
-
                 <div className="flex items-center justify-between rounded-xl bg-surface-variant px-5 py-4">
                   <span className="assist-option-text text-text">
                     {t.highContrast}
                   </span>
+
                   <input
                     type="checkbox"
                     className="toggle-switch"
                     checked={highContrast}
                     onChange={(e) => setHighContrast(e.target.checked)}
-                  />{" "}
+                  />
                 </div>
-
-                {/* Dyslexic font */}
 
                 <div className="flex items-center justify-between rounded-xl bg-surface-variant px-5 py-4">
                   <span className="assist-option-text text-text">
                     {t.dyslexicFont}
                   </span>
+
                   <input
                     type="checkbox"
                     checked={dyslexicFont}
                     onChange={(e) => setDyslexicFont(e.target.checked)}
                     className="toggle-switch"
-                  />{" "}
+                  />
                 </div>
-
-                {/* Dark mode */}
 
                 <div className="flex items-center justify-between rounded-xl bg-surface-variant px-5 py-4">
                   <span className="assist-option-text text-text">
                     {t.darkMode}
                   </span>
+
                   <input
                     type="checkbox"
                     checked={darkMode}
                     onChange={(e) => setDarkMode(e.target.checked)}
                     className="toggle-switch"
-                  />{" "}
+                  />
                 </div>
-
-                {/* Language */}
 
                 <div className="flex items-center justify-between rounded-xl bg-surface-variant px-5 py-3">
                   <span className="assist-option-text text-text">

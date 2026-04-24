@@ -262,7 +262,7 @@ export default function Dashboard() {
                 cursos y tareas hasta tu horario y servicios estudiantiles. 📚
                 <br />
                 <br />
-                📚 UUtiliza tu panel para mantenerte al día con tu trabajo,
+                📚 Utiliza tu panel para mantenerte al día con tu trabajo,
                 controlar tus plazos y acceder a todo lo que necesitas en un
                 solo lugar. 🗂️
               </p>

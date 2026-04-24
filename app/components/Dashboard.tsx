@@ -11,7 +11,7 @@ export default function Dashboard() {
                 viewBox="0 0 50 32"
                 fill="currentColor"
                 xmlns="http://www.w3.org/2000/svg"
-                fillRule="evenodd"
+                           fillRule="evenodd"
                 clipRule="evenodd"
                 strokeLinejoin="round"
                 strokeMiterlimit={2}
