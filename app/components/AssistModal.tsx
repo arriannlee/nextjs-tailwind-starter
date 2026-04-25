@@ -24,7 +24,7 @@ export default function AssistModal({
   setLanguage,
 }: AssistModalProps) {
   const name = "";
-
+  
   const [step, setStep] = useState<AssistStep>("welcome");
   const [darkMode, setDarkMode] = useState(false);
   const [highContrast, setHighContrast] = useState(false);
@@ -37,6 +37,7 @@ export default function AssistModal({
   const [aiSummary, setAiSummary] = useState<string[]>([]);
   const [pendingSettings, setPendingSettings] =
     useState<AccessibilitySettings | null>(null);
+  const [hintIndex, setHintIndex] = useState(0);
 
   const modalText = {
     en: {
@@ -45,8 +46,12 @@ export default function AssistModal({
         "Before you get started, let’s make things a bit easier to read and navigate so everything works better for you.",
       question:
         "What challenges do you experience when reading or navigating online systems?",
-      placeholder:
-        "Describe any challenges you face... type help for suggestions",
+      promptHints: [
+        "The text feels too small...",
+        "Bright screens hurt my eyes...",
+        "I struggle to focus when reading...",
+        "I find low contrast hard to read...",
+      ],
       showRecommendations: "Show Recommendations",
       updateRecommendations: "Update Recommendations",
       basedOnInput: "Based on your input, here’s what might help:",
@@ -76,8 +81,12 @@ export default function AssistModal({
         "Antes de comenzar, ajustemos la pantalla para que sea más fácil de leer y navegar.",
       question:
         "¿Qué dificultades tienes al leer o navegar por sistemas en línea?",
-      placeholder:
-        "Describe cualquier dificultad... escribe ayuda para sugerencias",
+      promptHints: [
+        "El texto se ve demasiado pequeño...",
+        "Las pantallas brillantes me molestan...",
+        "Me cuesta concentrarme al leer...",
+        "Me cuesta leer con poco contraste...",
+      ],
       showRecommendations: "Mostrar recomendaciones",
       updateRecommendations: "Actualizar recomendaciones",
       basedOnInput: "Según tu respuesta, esto podría ayudarte:",
@@ -105,6 +114,8 @@ export default function AssistModal({
 
   const t = modalText[language as "en" | "es"];
 
+  //  Load saved settings from localStorage on mount and apply them
+
   useEffect(() => {
     const savedSettings = localStorage.getItem("savnac-accessibility-settings");
 
@@ -121,6 +132,7 @@ export default function AssistModal({
     setLanguage(parsedSettings.language ?? language);
   }, []);
 
+  // Close modal on Escape key press
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -134,6 +146,9 @@ export default function AssistModal({
       window.removeEventListener("keydown", handleEscape);
     };
   }, [setIsModalOpen]);
+
+  // Apply dark mode and high contrast by toggling a data attribute on the root element
+
   useEffect(() => {
     const root = document.documentElement;
 
@@ -148,6 +163,8 @@ export default function AssistModal({
     }
   }, [darkMode, highContrast]);
 
+  // Apply dyslexic-friendly font by toggling a data attribute on the root element
+
   useEffect(() => {
     const root = document.documentElement;
 
@@ -157,6 +174,8 @@ export default function AssistModal({
       root.removeAttribute("data-font");
     }
   }, [dyslexicFont]);
+
+  // Map fontStep to actual CSS scale values and apply as a CSS variable
 
   useEffect(() => {
     const getFontScale = (step: number) => {
@@ -182,15 +201,7 @@ export default function AssistModal({
     );
   }, [fontStep]);
 
-  useEffect(() => {
-    if (!settingsSaved) return;
-
-    const timer = setTimeout(() => {
-      setSettingsSaved(false);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [settingsSaved]);
+  // Function to call AI recommendations
 
   const handleShowRecommendations = async () => {
     const trimmedInput = userNeed.trim();
@@ -287,6 +298,15 @@ export default function AssistModal({
     setIsModalOpen(false);
   };
 
+  // Rotate through prompt hints every 3 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHintIndex((current) => (current + 1) % t.promptHints.length);
+    }, 3000);
+
+    return () => clearInterval(timer);
+  }, [t.promptHints.length]);
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
@@ -329,7 +349,7 @@ export default function AssistModal({
                     handleShowRecommendations();
                   }
                 }}
-                placeholder={t.placeholder}
+                placeholder={t.promptHints[hintIndex]}
                 className="mb-5 w-full max-w-2xl rounded-md border border-divider bg-surface-variant px-4 py-3 assist-option-text text-text placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent"
               />
 
