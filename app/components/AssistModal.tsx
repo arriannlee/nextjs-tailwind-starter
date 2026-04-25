@@ -24,7 +24,7 @@ export default function AssistModal({
   setLanguage,
 }: AssistModalProps) {
   const name = "";
-  
+
   const [step, setStep] = useState<AssistStep>("welcome");
   const [darkMode, setDarkMode] = useState(false);
   const [highContrast, setHighContrast] = useState(false);
@@ -38,20 +38,20 @@ export default function AssistModal({
   const [pendingSettings, setPendingSettings] =
     useState<AccessibilitySettings | null>(null);
   const [hintIndex, setHintIndex] = useState(0);
+  const [inputError, setInputError] = useState("");
 
   const modalText = {
     en: {
       welcome: `Hi ${name || "there"}, welcome to B&FC! 👋`,
       intro:
-        "Before you get started, let’s make things a bit easier to read and navigate so everything works better for you.",
-      question:
-        "What challenges do you experience when reading or navigating online systems?",
+        "Before you get started, let’s make things a bit easier to read and navigate so everything works better for you. What challenges do you experience when reading or navigating online systems?",
       promptHints: [
         "The text feels too small...",
         "Bright screens hurt my eyes...",
         "I struggle to focus when reading...",
         "I find low contrast hard to read...",
       ],
+      inputError: "Please describe what you need help with first.",
       showRecommendations: "Show Recommendations",
       updateRecommendations: "Update Recommendations",
       basedOnInput: "Based on your input, here’s what might help:",
@@ -78,15 +78,14 @@ export default function AssistModal({
     es: {
       welcome: "Hola, bienvenido a B&FC 👋",
       intro:
-        "Antes de comenzar, ajustemos la pantalla para que sea más fácil de leer y navegar.",
-      question:
-        "¿Qué dificultades tienes al leer o navegar por sistemas en línea?",
+        "Antes de comenzar, ajustemos la pantalla para que sea más fácil de leer y navegar. ¿Qué dificultades tienes al leer o navegar por sistemas en línea?",
       promptHints: [
         "El texto se ve demasiado pequeño...",
         "Las pantallas brillantes me molestan...",
         "Me cuesta concentrarme al leer...",
         "Me cuesta leer con poco contraste...",
       ],
+      inputError: "Describe primero con qué necesitas ayuda.",
       showRecommendations: "Mostrar recomendaciones",
       updateRecommendations: "Actualizar recomendaciones",
       basedOnInput: "Según tu respuesta, esto podría ayudarte:",
@@ -206,8 +205,12 @@ export default function AssistModal({
   const handleShowRecommendations = async () => {
     const trimmedInput = userNeed.trim();
 
-    if (!trimmedInput) return;
+    if (!userNeed.trim()) {
+      setInputError("Please describe what you need help with first.");
+      return;
+    }
 
+    setInputError("");
     setIsAiLoading(true);
 
     try {
@@ -336,8 +339,6 @@ export default function AssistModal({
             <>
               <p className="mb-6 max-w-3xl assist-option-text leading-7 text-text-secondary">
                 {t.intro}
-                <br />
-                {t.question}
               </p>
 
               <input
@@ -352,6 +353,11 @@ export default function AssistModal({
                 placeholder={t.promptHints[hintIndex]}
                 className="mb-5 w-full max-w-2xl rounded-md border border-divider bg-surface-variant px-4 py-3 assist-option-text text-text placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent"
               />
+              {inputError && (
+                <p className="mb-4 w-full max-w-2xl text-left text-sm text-accent font-semibold">
+                  {t.inputError}
+                </p>
+              )}
 
               <button
                 onClick={handleShowRecommendations}
