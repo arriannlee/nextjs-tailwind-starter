@@ -6,6 +6,7 @@ type AssistModalProps = {
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   language: string;
   setLanguage: React.Dispatch<React.SetStateAction<string>>;
+  name: string;
 };
 
 type AssistStep = "welcome" | "recommendations" | "manual";
@@ -22,8 +23,8 @@ export default function AssistModal({
   setIsModalOpen,
   language,
   setLanguage,
+  name,
 }: AssistModalProps) {
-  const name = "";
 
   const [step, setStep] = useState<AssistStep>("welcome");
   const [darkMode, setDarkMode] = useState(false);
@@ -40,6 +41,8 @@ export default function AssistModal({
   const [hintIndex, setHintIndex] = useState(0);
   const [inputError, setInputError] = useState("");
   const [aiError, setAiError] = useState("");
+
+
 
   const modalText = {
     en: {
@@ -125,6 +128,8 @@ export default function AssistModal({
   };
 
   const t = modalText[language as "en" | "es"];
+
+  
 
   //  Load saved settings from localStorage on mount and apply them
 
