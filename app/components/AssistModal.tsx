@@ -34,7 +34,7 @@ export default function AssistModal({
 
   const [userNeed, setUserNeed] = useState("");
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [aiSummary, setAiSummary] = useState("");
+  const [aiSummary, setAiSummary] = useState<string[]>([]);
   const [pendingSettings, setPendingSettings] =
     useState<AccessibilitySettings | null>(null);
 
@@ -50,6 +50,8 @@ export default function AssistModal({
       showRecommendations: "Show Recommendations",
       updateRecommendations: "Update Recommendations",
       basedOnInput: "Based on your input, here’s what might help:",
+      basedOnOutput:
+        "These settings may improve your experience. You can preview them before applying changes.",
       preview: "Preview",
       apply: "Apply Changes",
       preferManual: "Prefer to adjust things yourself?",
@@ -79,6 +81,8 @@ export default function AssistModal({
       showRecommendations: "Mostrar recomendaciones",
       updateRecommendations: "Actualizar recomendaciones",
       basedOnInput: "Según tu respuesta, esto podría ayudarte:",
+      basedOnOutput:
+        "Estas configuraciones pueden mejorar tu experiencia. Puedes previsualizarlas antes de aplicar los cambios.",
       preview: "Vista previa",
       apply: "Aplicar cambios",
       preferManual: "¿Prefieres ajustar las opciones tú mismo?",
@@ -197,7 +201,7 @@ export default function AssistModal({
 
       const result = await response.json();
 
-      setAiSummary(result.summary ?? "");
+      setAiSummary(result.summary ?? []);
       setPendingSettings({
         darkMode: result.darkMode ?? false,
         highContrast: result.highContrast ?? false,
@@ -301,13 +305,20 @@ export default function AssistModal({
 
           {step === "recommendations" && (
             <>
-              <div className="mb-5 max-w-2xl rounded-md bg-surface-variant px-4 py-3 text-left">
+              <div className="mb-4 max-w-2xl px-4 py-3 text-left">
                 <p className="mb-2 assist-option-text font-semibold text-text">
                   {t.basedOnInput}
                 </p>
 
-                <p className="assist-option-text text-text-secondary">
-                  {aiSummary || t.previewFallback}
+                <ul className="list-disc pl-5 assist-option-text text-text-secondary space-y-2">
+                  {aiSummary.length > 0 ? (
+                    aiSummary.map((item, index) => <li key={index}>{item}</li>)
+                  ) : (
+                    <li>{t.previewFallback}</li>
+                  )}
+                </ul>
+                <p className="mt-2 assist-option-text text-text-secondary">
+                  {t.basedOnOutput}
                 </p>
               </div>
 

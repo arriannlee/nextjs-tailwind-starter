@@ -30,24 +30,53 @@ const handler: Handler = async (event: HandlerEvent) => {
     const prompt = `
 You are an accessibility assistant for a smart campus dashboard.
 
-Return ONLY valid JSON with:
+Analyse the user's difficulty and recommend interface settings.
+
+Rules:
+
+Decision rules:
+- If the user struggles reading small text, recommend increasing font size
+- If the user mentions bright screens, headaches, or eye strain, recommend enabling dark mode
+- If the user mentions difficulty distinguishing text, recommend enabling high contrast
+- If the user mentions dyslexia, reading difficulty, or focus issues, recommend enabling a dyslexic-friendly font
+- If the user writes in Spanish, set language to "es"
+- Otherwise use "en"
+
+Summary rules:
+- Describe the recommendations as pending suggestions only
+- Do not describe them as active or enabled
+- Do not imply the settings are already turned on
+- Do not use phrases like "is enabled", "has been enabled", "is increased", "has been changed"
+- Frame them as possible interface changes the system can preview
+- Write directly to the user using "you" and "your"
+- Keep the summary concise and specific to the user's input
+- Do not tell the user to make the changes themselves
+
+Good examples:
+"Dark mode may help reduce the screen brightness you mentioned."
+"Increasing your text size may make content easier for you to read."
+"A dyslexic-friendly font may improve your reading experience."
+
+Bad examples:
+"Dark mode is enabled to reduce screen brightness."
+"Your font size is increased to improve readability."
+"A dyslexic-friendly font is enabled to support your reading."
+
+Return ONLY valid JSON:
+
 {
   "darkMode": boolean,
   "highContrast": boolean,
   "dyslexicFont": boolean,
   "fontStep": -2 | -1 | 0 | 1 | 2,
   "language": "en" | "es",
-  "summary": string
+"summary": string[]
 }
 
-Rules:
-- The summary MUST describe what may help the user (future tense).
-- Do NOT say changes have already been applied.
-- Keep the summary short and clear.
-- Example: "Increasing the text size and enabling dark mode may make the interface easier to read."
-- Always include a summary.
+The summary should explain suggested improvements clearly for the user.
 
-User input: "${input}"
+User input:
+"${input}"
 `;
 
     const geminiResponse = await fetch(
