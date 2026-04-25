@@ -41,6 +41,11 @@ Decision rules:
 - If the user mentions dyslexia, reading difficulty, or focus issues, recommend enabling a dyslexic-friendly font
 - If the user writes in Spanish, set language to "es"
 - Otherwise use "en"
+- If the user's input does not describe a reading, navigation, accessibility, or focus-related difficulty, set "isRelevant" to false.
+- If "isRelevant" is false, return an empty settings recommendation and explain that the user should describe a difficulty they experience when using online systems.
+Relevance rules:
+- If the user input is unrelated to accessibility, reading, navigation, focus, comprehension, or visual comfort, set "isRelevant" to false.
+- If the input is abusive, random, or unrelated, do not generate recommendations.
 
 Summary rules:
 - Describe the recommendations as pending suggestions only
@@ -65,12 +70,13 @@ Bad examples:
 Return ONLY valid JSON:
 
 {
+  "isRelevant": boolean,
   "darkMode": boolean,
   "highContrast": boolean,
   "dyslexicFont": boolean,
   "fontStep": -2 | -1 | 0 | 1 | 2,
   "language": "en" | "es",
-"summary": string[]
+  "summary": string[]
 }
 
 The summary should explain suggested improvements clearly for the user.

@@ -57,6 +57,8 @@ export default function AssistModal({
         "Savnac Assist is temporarily unavailable. Please try again or use manual settings.",
       aiFailed:
         "Something went wrong while checking your preferences. Please try again.",
+      invalidInput:
+        "Please describe a difficulty you experience when reading or using online systems so Savnac Assist can help.",
       showRecommendations: "Show Recommendations",
       updateRecommendations: "Update Recommendations",
       basedOnInput: "Based on your input, here’s what might help:",
@@ -95,6 +97,8 @@ export default function AssistModal({
         "Savnac Assist no está disponible temporalmente. Inténtalo de nuevo o usa la configuración manual.",
       aiFailed:
         "Algo salió mal al revisar tus preferencias. Inténtalo de nuevo.",
+      invalidInput:
+        "Describe una dificultad que tengas al leer o usar sistemas en línea para que Savnac Assist pueda ayudarte.",
       showRecommendations: "Mostrar recomendaciones",
       updateRecommendations: "Actualizar recomendaciones",
       basedOnInput: "Según tu respuesta, esto podría ayudarte:",
@@ -246,6 +250,14 @@ export default function AssistModal({
 
       const result = await response.json();
 
+      if (!result.isRelevant) {
+        setAiError(t.invalidInput);
+        setAiSummary([]);
+        setPendingSettings(null);
+        setStep("recommendations");
+        return;
+      }
+
       const summary = Array.isArray(result.summary)
         ? result.summary
         : result.summary
@@ -391,38 +403,51 @@ export default function AssistModal({
 
           {step === "recommendations" && (
             <>
-              <div className="mb-4 max-w-2xl px-4 py-3 text-left">
-                <p className="mb-2 assist-option-text font-semibold text-text">
-                  {t.basedOnInput}
-                </p>
+              {aiError ? (
+                <div className="mb-4 max-w-2xl px-4 py-3 text-left">
+                  <p className="assist-option-text text-text-secondary">
+                    {aiError}
+                  </p>
+                </div>
+              ) : (
+                <div className="mb-4 max-w-2xl px-4 py-3 text-left">
+                  <p className="mb-2 assist-option-text font-semibold text-text">
+                    {t.basedOnInput}
+                  </p>
 
-                <ul className="list-disc pl-5 assist-option-text text-text-secondary space-y-2">
-                  {aiSummary.length > 0 ? (
-                    aiSummary.map((item, index) => <li key={index}>{item}</li>)
-                  ) : (
-                    <li>{t.previewFallback}</li>
-                  )}
-                </ul>
-                <p className="mt-2 assist-option-text text-text-secondary">
-                  {t.basedOnOutput}
-                </p>
-              </div>
+                  <ul className="list-disc pl-5 assist-option-text text-text-secondary space-y-2">
+                    {aiSummary.length > 0 ? (
+                      aiSummary.map((item, index) => (
+                        <li key={index}>{item}</li>
+                      ))
+                    ) : (
+                      <li>{t.previewFallback}</li>
+                    )}
+                  </ul>
 
-              <div className="mb-5 flex items-center justify-center gap-4">
-                <button
-                  onClick={handlePreviewRecommendations}
-                  className="rounded-md border border-accent bg-background px-8 py-3 assist-option-text font-semibold text-accent transition hover:opacity-90"
-                >
-                  {t.preview}
-                </button>
+                  <p className="mt-2 assist-option-text text-text-secondary">
+                    {t.basedOnOutput}
+                  </p>
+                </div>
+              )}
 
-                <button
-                  onClick={handleApplyChanges}
-                  className="rounded-md bg-accent px-8 py-3 assist-option-text font-semibold text-white transition hover:opacity-90"
-                >
-                  {t.apply}
-                </button>
-              </div>
+              {!aiError && (
+                <div className="mb-5 flex items-center justify-center gap-4">
+                  <button
+                    onClick={handlePreviewRecommendations}
+                    className="rounded-md border border-accent bg-background px-8 py-3 assist-option-text font-semibold text-accent transition hover:opacity-90"
+                  >
+                    {t.preview}
+                  </button>
+
+                  <button
+                    onClick={handleApplyChanges}
+                    className="rounded-md bg-accent px-8 py-3 assist-option-text font-semibold text-white transition hover:opacity-90"
+                  >
+                    {t.apply}
+                  </button>
+                </div>
+              )}
 
               {settingsSaved && (
                 <p className="mt-1 mb-2 text-sm text-text-secondary">
