@@ -180,7 +180,9 @@ export default function AssistModal({
   }, [settingsSaved]);
 
   const handleShowRecommendations = async () => {
-    if (!userNeed.trim()) return;
+    const trimmedInput = userNeed.trim();
+
+    if (!trimmedInput) return;
 
     setIsAiLoading(true);
 
@@ -190,18 +192,30 @@ export default function AssistModal({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ input: userNeed }),
+        body: JSON.stringify({ input: trimmedInput }),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error("AI function failed:", errorText);
+
+        setAiSummary([
+          "Savnac Assist is temporarily busy. Please try again shortly, or use the manual settings below.",
+        ]);
+        setPendingSettings(null);
+        setStep("recommendations");
         return;
       }
 
       const result = await response.json();
 
-      setAiSummary(result.summary ?? []);
+      const summary = Array.isArray(result.summary)
+        ? result.summary
+        : result.summary
+          ? [result.summary]
+          : [];
+
+      setAiSummary(summary);
       setPendingSettings({
         darkMode: result.darkMode ?? false,
         highContrast: result.highContrast ?? false,
@@ -213,11 +227,16 @@ export default function AssistModal({
       setStep("recommendations");
     } catch (error) {
       console.error("AI recommendation failed", error);
+
+      setAiSummary([
+        "Savnac Assist is temporarily busy. Please try again shortly, or use the manual settings below.",
+      ]);
+      setPendingSettings(null);
+      setStep("recommendations");
     } finally {
       setIsAiLoading(false);
     }
   };
-
   const handlePreviewRecommendations = () => {
     if (!pendingSettings) return;
 
@@ -286,6 +305,11 @@ export default function AssistModal({
                 type="text"
                 value={userNeed}
                 onChange={(e) => setUserNeed(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleShowRecommendations();
+                  }
+                }}
                 placeholder={t.placeholder}
                 className="mb-5 w-full max-w-2xl rounded-md border border-divider bg-surface-variant px-4 py-3 assist-option-text text-text placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent"
               />
