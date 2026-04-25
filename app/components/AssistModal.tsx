@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
 
 type AssistModalProps = {
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -25,7 +26,6 @@ export default function AssistModal({
   setLanguage,
   name,
 }: AssistModalProps) {
-
   const [step, setStep] = useState<AssistStep>("welcome");
   const [darkMode, setDarkMode] = useState(false);
   const [highContrast, setHighContrast] = useState(false);
@@ -41,8 +41,7 @@ export default function AssistModal({
   const [hintIndex, setHintIndex] = useState(0);
   const [inputError, setInputError] = useState("");
   const [aiError, setAiError] = useState("");
-
-
+  const modalRef = useRef<HTMLDivElement>(null);
 
   const modalText = {
     en: {
@@ -129,7 +128,45 @@ export default function AssistModal({
 
   const t = modalText[language as "en" | "es"];
 
-  
+  // Animate modal appearance with GSAP
+
+  useEffect(() => {
+    if (!modalRef.current) return;
+
+    gsap.fromTo(
+      modalRef.current,
+      {
+        opacity: 0,
+        y: 20,
+        scale: 0.98,
+      },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.5,
+        ease: "power2.out",
+      },
+    );
+  }, []);
+
+  const handleClose = () => {
+    if (!modalRef.current) {
+      setIsModalOpen(false);
+      return;
+    }
+
+    gsap.to(modalRef.current, {
+      opacity: 0,
+      y: 20,
+      scale: 0.98,
+      duration: 0.6,
+      ease: "power2.in",
+      onComplete: () => {
+        setIsModalOpen(false);
+      },
+    });
+  };
 
   //  Load saved settings from localStorage on mount and apply them
 
@@ -346,15 +383,16 @@ export default function AssistModal({
 
   return (
     <div
+      ref={modalRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onClick={() => setIsModalOpen(false)}
+      onClick={handleClose}
     >
       <div
         className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl bg-background px-10 py-8 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          onClick={() => setIsModalOpen(false)}
+          onClick={handleClose}
           className="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-md text-text-secondary transition hover:bg-black/5 hover:opacity-80"
           aria-label="Close modal"
         >
