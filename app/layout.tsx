@@ -14,9 +14,20 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Savnac Assist",
-  description: "AI-powered accessibility support for smart campus systems"
-  }
-
+  description: "AI-powered accessibility support for smart campus systems",
+  openGraph: {
+    title: "Savnac Assist",
+    description: "AI-powered accessibility support for smart campus systems",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Savnac Assist Preview",
+      },
+    ],
+  },
+};
 
 export const viewport: Viewport = {
   width: "device-width",
