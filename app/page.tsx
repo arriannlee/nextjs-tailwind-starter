@@ -221,7 +221,7 @@ export default function Home() {
                   <li>✓ Saves your preferences</li>
                 </ul>
                 <p className="mt-30 ml-4 text-lg font-semibold leading-7">
-                  V1.0
+                  V1.01
                 </p>
               </div>
             </div>
